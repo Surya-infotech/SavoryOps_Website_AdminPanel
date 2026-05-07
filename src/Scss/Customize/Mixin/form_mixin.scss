@@ -1,0 +1,47 @@
+@use "../var.scss" as var;
+
+@mixin form_label {
+    display: block;
+    font-weight: var.$form_label_weight !important;
+    margin-bottom: var.$form_label_bottom !important;
+}
+
+@mixin form_input {
+    background-color: var(--form-input-color);
+    display: block;
+    padding: 10px 12px;
+    border: var.$form_input_border_color !important;
+    border-radius: var(--radius-sm);
+    margin-bottom: 15px !important;
+    outline: none;
+    color: var(--text-color) !important;
+
+    &:focus,
+    &:hover {
+        box-shadow: 0 0 0 0.25rem color-mix(in srgb, var(--primary-color) 35%, transparent) !important;
+    }
+
+    &::placeholder {
+        color: var(--text-color) !important;
+    }
+
+    &[type="number"] {
+        -moz-appearance: textfield;
+        -webkit-appearance: none;
+        appearance: none;
+
+        &::-webkit-inner-spin-button,
+        &::-webkit-outer-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+    }
+
+    &[type="radio"] {
+
+        &:hover,
+        &:focus {
+            box-shadow: none !important;
+        }
+    }
+}

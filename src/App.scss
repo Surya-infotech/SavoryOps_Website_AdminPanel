@@ -1,0 +1,39 @@
+@use "Scss/Customize/var.scss" as var;
+
+* {
+    margin: 0;
+    font-family: "Poppins", sans-serif !important;
+}
+
+body {
+    background-color: var(--body-background-color) !important;
+    color: var(--text-color) !important;
+    padding-bottom: 25px !important;
+}
+
+body,
+button,
+input,
+textarea {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+::-webkit-scrollbar {
+    width: 6px !important;
+    height: 6px !important;
+    background-color: transparent !important;
+}
+
+::-webkit-scrollbar-track {
+    background-color: transparent !important;
+}
+
+::-webkit-scrollbar-thumb {
+    background-color: var.$hover_color !important;
+    border-radius: 10px !important;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background-color: var.$hover_color !important;
+}
