@@ -72,7 +72,8 @@
         border-color: rgba(59, 130, 246, 0.25);
     }
 
-    &.status-pending {
+    &.status-pending,
+    &.status-hold {
         background: rgba(234, 179, 8, 0.15);
         color: #a16207;
         border-color: rgba(234, 179, 8, 0.3);
@@ -84,6 +85,13 @@
         background: rgba(99, 102, 241, 0.14);
         color: #4338ca;
         border-color: rgba(99, 102, 241, 0.28);
+    }
+
+    &.status-ongoing,
+    &.status-on_going {
+        background: rgba(20, 184, 166, 0.14);
+        color: #0f766e;
+        border-color: rgba(20, 184, 166, 0.28);
     }
 
     &.status-resolved,
@@ -100,6 +108,77 @@
         background: rgba(239, 68, 68, 0.14);
         color: #b91c1c;
         border-color: rgba(239, 68, 68, 0.28);
+    }
+}
+
+.status-cell-wrapper {
+    position: relative;
+    display: inline-block;
+}
+
+.status-badge-trigger {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 0;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    font: inherit;
+    color: inherit;
+
+    &:focus {
+        outline: none;
+    }
+
+    &:focus-visible {
+        outline: 2px solid var(--primary-color);
+        outline-offset: 2px;
+        border-radius: 999px;
+    }
+}
+
+.status-dropdown-menu {
+    position: fixed;
+    z-index: 1200;
+    min-width: 180px;
+    margin: 0;
+    padding: 6px;
+    list-style: none;
+    background-color: var(--page-color, #fff);
+    border: 1px solid var(--border-color, rgba(0, 0, 0, 0.12));
+    border-radius: 8px;
+    box-shadow: 0 10px 24px rgba(0, 0, 0, 0.18);
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+
+    li {
+        list-style: none;
+    }
+
+    .status-dropdown-option {
+        display: block;
+        width: 100%;
+        padding: 6px 8px;
+        background: transparent;
+        border: none;
+        border-radius: 6px;
+        text-align: left;
+        cursor: pointer;
+        font: inherit;
+
+        &:hover {
+            background-color: rgba(17, 24, 39, 0.06);
+        }
+
+        &.is-selected {
+            background-color: rgba(17, 24, 39, 0.08);
+        }
+
+        .status-badge {
+            cursor: pointer;
+        }
     }
 }
 

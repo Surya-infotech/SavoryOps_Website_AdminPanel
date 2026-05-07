@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
     ArrowDownward,
@@ -8,10 +8,48 @@ import {
 } from '@mui/icons-material';
 import { IconButton } from '@mui/material';
 import { useAuth } from '../../../Middleware/Auth';
+import AlertMessage from '../../../Pages/Custom/AlertMessage';
 import LoadingSpinner from '../../../Pages/Custom/LoadingSpinner';
 import Pagination from '../../../Pages/Custom/Pagination';
 import WarningModal from '../../../Pages/Custom/WarningModal';
 import '../../../Scss/Home/ContactLead/getcontactlead.scss';
+
+const STATUS_OPTIONS = [
+    { label: 'Requested', value: 'requested' },
+    { label: 'In Progress', value: 'in_progress' },
+    { label: 'On Going', value: 'ongoing' },
+    { label: 'Hold', value: 'hold' },
+    { label: 'Cancelled', value: 'cancelled' },
+    { label: 'Completed', value: 'completed' },
+];
+
+const getStatusOption = (status) => {
+    if (!status) return null;
+    const raw = String(status).trim();
+    const normalized = raw.toLowerCase().replace(/\s+/g, '_');
+    return (
+        STATUS_OPTIONS.find(
+            (opt) =>
+                opt.value === normalized ||
+                opt.label.toLowerCase() === raw.toLowerCase(),
+        ) || null
+    );
+};
+
+const getStatusLabel = (status) => {
+    if (!status) return '';
+    const match = getStatusOption(status);
+    return match ? match.label : String(status);
+};
+
+const getStatusClass = (status) => {
+    if (!status) return '';
+    const match = getStatusOption(status);
+    const slug = match
+        ? match.value
+        : String(status).toLowerCase().replace(/\s+/g, '_');
+    return `status-${slug}`;
+};
 
 const formatDate = (value) => {
     if (!value) return '-';
@@ -30,12 +68,17 @@ const GetContactLead = ({ searchValue }) => {
     const [loading, setLoading] = useState(true);
     const [warningMessage, setWarningMessage] = useState('');
     const [showWarning, setShowWarning] = useState(false);
+    const [alertMessage, setAlertMessage] = useState('');
+    const [showAlert, setShowAlert] = useState(false);
     const [contactList, setContactList] = useState([]);
     const [currentPage, setCurrentPage] = useState(1);
     const [pageSize, setPageSize] = useState(10);
     const [sortColumn, setSortColumn] = useState('createdAt');
     const [sortDirection, setSortDirection] = useState('desc');
     const [viewModalContact, setViewModalContact] = useState(null);
+    const [statusDropdownId, setStatusDropdownId] = useState(null);
+    const [dropdownPos, setDropdownPos] = useState({ top: 0, left: 0 });
+    const statusWrapperRef = useRef(null);
 
     useEffect(() => {
         if (!token) {
@@ -119,8 +162,111 @@ const GetContactLead = ({ searchValue }) => {
     const handleWarningClose = () => setShowWarning(false);
     const handleCloseViewModal = () => setViewModalContact(null);
 
+    const handleStatusTriggerClick = (e, contactId) => {
+        e.stopPropagation();
+        if (statusDropdownId === contactId) {
+            setStatusDropdownId(null);
+            return;
+        }
+        const rect = e.currentTarget.getBoundingClientRect();
+        setDropdownPos({
+            top: rect.bottom + 4,
+            left: rect.left,
+        });
+        setStatusDropdownId(contactId);
+    };
+
+    const handleStatusSelect = async (contactId, option) => {
+        const newStatus = option.label;
+        const target = contactList.find((c) => c._id === contactId);
+        const previousStatus = target?.status;
+        const previousMatch = getStatusOption(previousStatus);
+        if (previousMatch && previousMatch.value === option.value) {
+            setStatusDropdownId(null);
+            return;
+        }
+
+        setContactList((prev) =>
+            prev.map((c) => (c._id === contactId ? { ...c, status: newStatus } : c)),
+        );
+        setStatusDropdownId(null);
+
+        try {
+            const response = await fetch(
+                `${adminPanelBackendPath}/system/contactlead/${contactId}`,
+                {
+                    method: 'PUT',
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ status: newStatus }),
+                },
+            );
+            const data = await response.json().catch(() => ({}));
+
+            if (!response.ok) {
+                setContactList((prev) =>
+                    prev.map((c) =>
+                        c._id === contactId ? { ...c, status: previousStatus } : c,
+                    ),
+                );
+                setWarningMessage(
+                    data?.message || 'Failed to update status. Please try again.',
+                );
+                setShowWarning(true);
+                return;
+            }
+
+            const updatedLead = data?.contactLead || data?.lead || data?.data;
+            if (updatedLead && updatedLead._id) {
+                setContactList((prev) =>
+                    prev.map((c) => (c._id === contactId ? { ...c, ...updatedLead } : c)),
+                );
+            }
+
+            setAlertMessage(data?.message || 'Status updated successfully');
+            setShowAlert(true);
+        } catch {
+            setContactList((prev) =>
+                prev.map((c) =>
+                    c._id === contactId ? { ...c, status: previousStatus } : c,
+                ),
+            );
+            setWarningMessage('Server error. Please try again.');
+            setShowWarning(true);
+        }
+    };
+
+    useEffect(() => {
+        if (!statusDropdownId) return undefined;
+        const handleClickOutside = (e) => {
+            if (
+                statusWrapperRef.current &&
+                !statusWrapperRef.current.contains(e.target)
+            ) {
+                setStatusDropdownId(null);
+            }
+        };
+        const handleViewportChange = () => setStatusDropdownId(null);
+        document.addEventListener('mousedown', handleClickOutside);
+        window.addEventListener('scroll', handleViewportChange, true);
+        window.addEventListener('resize', handleViewportChange);
+        return () => {
+            document.removeEventListener('mousedown', handleClickOutside);
+            window.removeEventListener('scroll', handleViewportChange, true);
+            window.removeEventListener('resize', handleViewportChange);
+        };
+    }, [statusDropdownId]);
+
     return (
         <>
+            {showAlert && (
+                <AlertMessage
+                    message={alertMessage}
+                    onClose={() => setShowAlert(false)}
+                />
+            )}
             {showWarning && (
                 <WarningModal message={warningMessage} onClose={handleWarningClose} />
             )}
@@ -156,18 +302,79 @@ const GetContactLead = ({ searchValue }) => {
                                         <td>{contact.fullname}</td>
                                         <td>{contact.email}</td>
                                         <td>{contact.country}</td>
-                                        <td>
-                                            {contact.status ? (
-                                                <span
-                                                    className={`status-badge status-${String(
-                                                        contact.status,
-                                                    ).toLowerCase()}`}
+                                        <td className="status-cell">
+                                            <div
+                                                className="status-cell-wrapper"
+                                                ref={
+                                                    statusDropdownId === contact._id
+                                                        ? statusWrapperRef
+                                                        : null
+                                                }
+                                            >
+                                                <button
+                                                    type="button"
+                                                    className="status-badge-trigger"
+                                                    onClick={(e) =>
+                                                        handleStatusTriggerClick(
+                                                            e,
+                                                            contact._id,
+                                                        )
+                                                    }
                                                 >
-                                                    {contact.status}
-                                                </span>
-                                            ) : (
-                                                '-'
-                                            )}
+                                                    {contact.status ? (
+                                                        <span
+                                                            className={`status-badge ${getStatusClass(
+                                                                contact.status,
+                                                            )}`}
+                                                        >
+                                                            {getStatusLabel(contact.status)}
+                                                        </span>
+                                                    ) : (
+                                                        <span className="status-badge">-</span>
+                                                    )}
+                                                </button>
+                                                {statusDropdownId === contact._id && (
+                                                    <ul
+                                                        className="status-dropdown-menu"
+                                                        style={{
+                                                            top: `${dropdownPos.top}px`,
+                                                            left: `${dropdownPos.left}px`,
+                                                        }}
+                                                    >
+                                                        {STATUS_OPTIONS.map((opt) => {
+                                                            const currentMatch =
+                                                                getStatusOption(contact.status);
+                                                            const isSelected =
+                                                                currentMatch?.value ===
+                                                                opt.value;
+                                                            return (
+                                                                <li key={opt.value}>
+                                                                    <button
+                                                                        type="button"
+                                                                        className={`status-dropdown-option${
+                                                                            isSelected
+                                                                                ? ' is-selected'
+                                                                                : ''
+                                                                        }`}
+                                                                        onClick={() =>
+                                                                            handleStatusSelect(
+                                                                                contact._id,
+                                                                                opt,
+                                                                            )
+                                                                        }
+                                                                    >
+                                                                        <span
+                                                                            className={`status-badge status-${opt.value}`}
+                                                                        >
+                                                                            {opt.label}
+                                                                        </span>
+                                                                    </button>
+                                                                </li>
+                                                            );
+                                                        })}
+                                                    </ul>
+                                                )}
+                                            </div>
                                         </td>
                                         <td>{formatDate(contact.createdAt)}</td>
                                         <td>
@@ -248,11 +455,11 @@ const GetContactLead = ({ searchValue }) => {
                                             <span className="contactlead-view-value">
                                                 {viewModalContact.status ? (
                                                     <span
-                                                        className={`status-badge status-${String(
+                                                        className={`status-badge ${getStatusClass(
                                                             viewModalContact.status,
-                                                        ).toLowerCase()}`}
+                                                        )}`}
                                                     >
-                                                        {viewModalContact.status}
+                                                        {getStatusLabel(viewModalContact.status)}
                                                     </span>
                                                 ) : (
                                                     '-'
