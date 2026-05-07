@@ -12,6 +12,8 @@ import AlertMessage from "../../../Pages/Custom/AlertMessage";
 import LoadingSpinner from "../../../Pages/Custom/LoadingSpinner";
 import Pagination from "../../../Pages/Custom/Pagination";
 import WarningModal from "../../../Pages/Custom/WarningModal";
+import CheckToken from "../../../utils/CheckToken";
+import HandleUnauthorized from "../../../utils/HandleUnauthorized";
 import "../../../Scss/Home/DemoBook/getdemobook.scss";
 
 const STATUS_OPTIONS = [
@@ -105,11 +107,7 @@ const GetDemoBook = ({ searchValue }) => {
   const statusWrapperRef = useRef(null);
 
   useEffect(() => {
-    if (!token) {
-      logoutUser();
-      navigate("/Signin");
-      return;
-    }
+    if (!CheckToken(token, logoutUser, navigate)) return;
 
     const fetchDemoBookings = async () => {
       try {
@@ -125,6 +123,7 @@ const GetDemoBook = ({ searchValue }) => {
           },
         );
         const data = await response.json();
+        if (HandleUnauthorized(data, logoutUser, navigate)) return;
 
         if (response.ok) {
           setBookingList(Array.isArray(data?.demos) ? data.demos : []);
@@ -199,6 +198,8 @@ const GetDemoBook = ({ searchValue }) => {
   };
 
   const handleStatusSelect = async (bookingId, option) => {
+    if (!CheckToken(token, logoutUser, navigate)) return;
+
     const newStatus = option.label;
     const target = bookingList.find((b) => b._id === bookingId);
     const previousStatus = target?.status;
@@ -226,6 +227,15 @@ const GetDemoBook = ({ searchValue }) => {
         },
       );
       const data = await response.json().catch(() => ({}));
+
+      if (HandleUnauthorized(data, logoutUser, navigate)) {
+        setBookingList((prev) =>
+          prev.map((b) =>
+            b._id === bookingId ? { ...b, status: previousStatus } : b,
+          ),
+        );
+        return;
+      }
 
       if (!response.ok) {
         setBookingList((prev) =>

@@ -12,6 +12,8 @@ import AlertMessage from '../../../Pages/Custom/AlertMessage';
 import LoadingSpinner from '../../../Pages/Custom/LoadingSpinner';
 import Pagination from '../../../Pages/Custom/Pagination';
 import WarningModal from '../../../Pages/Custom/WarningModal';
+import CheckToken from '../../../utils/CheckToken';
+import HandleUnauthorized from '../../../utils/HandleUnauthorized';
 import '../../../Scss/Home/ContactLead/getcontactlead.scss';
 
 const STATUS_OPTIONS = [
@@ -81,11 +83,7 @@ const GetContactLead = ({ searchValue }) => {
     const statusWrapperRef = useRef(null);
 
     useEffect(() => {
-        if (!token) {
-            logoutUser();
-            navigate('/Signin');
-            return;
-        }
+        if (!CheckToken(token, logoutUser, navigate)) return;
 
         const fetchContactLeads = async () => {
             try {
@@ -101,6 +99,7 @@ const GetContactLead = ({ searchValue }) => {
                     },
                 );
                 const data = await response.json();
+                if (HandleUnauthorized(data, logoutUser, navigate)) return;
 
                 if (response.ok) {
                     setContactList(Array.isArray(data?.leads) ? data.leads : []);
@@ -177,6 +176,8 @@ const GetContactLead = ({ searchValue }) => {
     };
 
     const handleStatusSelect = async (contactId, option) => {
+        if (!CheckToken(token, logoutUser, navigate)) return;
+
         const newStatus = option.label;
         const target = contactList.find((c) => c._id === contactId);
         const previousStatus = target?.status;
@@ -204,6 +205,15 @@ const GetContactLead = ({ searchValue }) => {
                 },
             );
             const data = await response.json().catch(() => ({}));
+
+            if (HandleUnauthorized(data, logoutUser, navigate)) {
+                setContactList((prev) =>
+                    prev.map((c) =>
+                        c._id === contactId ? { ...c, status: previousStatus } : c,
+                    ),
+                );
+                return;
+            }
 
             if (!response.ok) {
                 setContactList((prev) =>
