@@ -1,0 +1,25 @@
+@use "../../Customize/Mixin/page_mixin.scss" as mixin;
+
+.DemoBook-container {
+    @include mixin.main_page;
+
+    .demobook-container {
+        @include mixin.page;
+
+        .demobook-headingname {
+            @include mixin.heading_name_text;
+
+            &::before {
+                @include mixin.heading_name;
+            }
+        }
+
+        .demobook-form-container {
+            @include mixin.page_size;
+
+            .demobook-header {
+                @include mixin.page_header;
+            }
+        }
+    }
+}
