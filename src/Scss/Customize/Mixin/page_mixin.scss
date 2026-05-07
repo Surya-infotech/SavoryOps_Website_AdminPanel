@@ -1,0 +1,63 @@
+@use "../var.scss" as var;
+
+@mixin main_page {
+    display: flex !important;
+    margin-bottom: 80px !important;
+}
+
+@mixin page {
+    margin-left: 2% !important;
+    width: 96% !important;
+    margin-right: 2% !important;
+    margin-top: 15px !important;
+}
+
+@mixin heading_name {
+    content: "\2022" !important;
+    font-size: 18px !important;
+    margin-right: 10px !important;
+    color: gray !important;
+}
+
+@mixin heading_name_text {
+    color: gray !important;
+    font-size: 18px !important;
+    margin-left: 20px !important;
+}
+
+@mixin page_size {
+    height: 100% !important;
+    background-color: var(--page-color) !important;
+    border-radius: var(--radius-lg) !important;
+    box-shadow: var(--shadow-md) !important;
+    padding: 25px !important;
+    border: 1px solid var(--border-color);
+}
+
+@mixin page_header {
+    display: flex !important;
+    justify-content: flex-end !important;
+    margin-bottom: 20px !important;
+
+    input,
+    .search-input {
+        margin-right: 15px !important;
+        display: block;
+        height: 44px !important;
+        padding: 8px;
+        color: var(--text-color) !important;
+        background-color: var(--page-color) !important;
+        border: var.$form_input_border_color !important;
+        border-radius: var(--radius-sm);
+        outline: none;
+
+        &:focus,
+        &:hover {
+            box-shadow: 0 0 0 0.25rem color-mix(in srgb, var(--primary-color) 35%, transparent) !important;
+        }
+
+        &::placeholder {
+            color: var(--text-color) !important;
+        }
+    }
+}

@@ -4,7 +4,6 @@ import { useAuth } from "../../Middleware/Auth";
 import "../../Scss/General/signin.scss";
 import AlertMessage from "../Custom/AlertMessage";
 import WarningModal from "../Custom/WarningModal";
-import CheckToken from "../../utils/CheckToken";
 
 const AdminLogin = () => {
   const [email, setEmail] = useState("");
@@ -12,10 +11,9 @@ const AdminLogin = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const [searchParams, setSearchParams] = useSearchParams();
-  const { storetoken, logoutUser } = useAuth();
+  const { storetoken } = useAuth();
   const BackendPath = import.meta.env.VITE_BACKEND_URL;
   const tokenname = import.meta.env.VITE_AdminTOKEN_NAME;
-  const token = localStorage.getItem(tokenname);
   const [warningMessage, setWarningMessage] = useState("");
   const [showWarning, setShowWarning] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -26,6 +24,12 @@ const AdminLogin = () => {
   useEffect(() => {
     document.title = "Sign In";
   }, []);
+
+  useEffect(() => {
+    if (localStorage.getItem(tokenname)) {
+      navigate("/Home/Dashboard", { replace: true });
+    }
+  }, [navigate, tokenname]);
 
   const messageParam = searchParams.get("message");
   const stateMessage = location.state?.message;
@@ -41,38 +45,6 @@ const AdminLogin = () => {
       navigate(location.pathname, { replace: true });
     }
   };
-
-  const checkToken = async () => {
-    if (!CheckToken(token, logoutUser, navigate)) return;
-
-    try {
-      const response = await fetch(
-        `${BackendPath}/general/admin/verify-token`,
-        {
-          method: "GET",
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
-          },
-        },
-      );
-
-      if (response.ok) {
-        navigate("/Home/Dashboard");
-      } else {
-        logoutUser();
-        navigate("/Signin");
-      }
-    } catch {
-      logoutUser();
-      navigate("/Signin");
-    }
-  };
-
-  useEffect(() => {
-    checkToken();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [BackendPath, token, tokenname]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();

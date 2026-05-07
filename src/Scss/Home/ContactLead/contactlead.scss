@@ -1,0 +1,25 @@
+@use "../../Customize/Mixin/page_mixin.scss" as mixin;
+
+.ContactLead-container {
+    @include mixin.main_page;
+
+    .contactlead-container {
+        @include mixin.page;
+
+        .contactlead-headingname {
+            @include mixin.heading_name_text;
+
+            &::before {
+                @include mixin.heading_name;
+            }
+        }
+
+        .contactlead-form-container {
+            @include mixin.page_size;
+
+            .contactlead-header {
+                @include mixin.page_header;
+            }
+        }
+    }
+}

@@ -1,0 +1,184 @@
+@use "../Customize/var.scss" as var;
+
+.navbar {
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    align-items: flex-start;
+    background-color: var(--background-color);
+    padding: 14px 10px 10px;
+    height: 100vh;
+    width: 250px;
+    z-index: 1000;
+    box-shadow: var(--shadow-sm);
+    border-right: 1px solid var(--border-color);
+    position: fixed;
+    top: 0;
+    left: 0;
+    transition: width 0.3s ease;
+
+    &.collapsed {
+        width: 80px;
+    }
+}
+
+.logo {
+    margin-bottom: 12px;
+    display: flex;
+    width: 100%;
+    align-items: center;
+    justify-content: space-between;
+
+    .logoimage {
+        width: 100%;
+        height: 80px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        border-radius: var(--radius-md);
+        background: color-mix(in srgb, var(--primary-color) 10%, transparent);
+
+        img {
+            width: 60px;
+            height: auto;
+            transition: width 0.3s ease;
+            cursor: pointer;
+            filter: drop-shadow(0 8px 18px rgba(0, 0, 0, 0.12));
+        }
+    }
+}
+
+.navbar.collapsed .logo {
+    margin-bottom: 15px;
+    display: flex;
+    width: 115%;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.navbar.collapsed .logoimage {
+    width: 60px;
+
+    img {
+        width: 50px;
+    }
+}
+
+.arrowdiv {
+    background-color: var(--arrow-color);
+    margin-left: 10px;
+    font-size: 24px;
+    position: relative;
+    border-radius: 50%;
+    width: 30px;
+    height: 30px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    border: 1px solid var(--border-color);
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.08);
+}
+
+.arrow-icon {
+    transition: opacity 0.3s ease;
+}
+
+.navbar.collapsed .arrowdiv {
+    margin-left: 2px;
+    font-size: 24px;
+}
+
+.admintab {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    margin-left: 0px !important;
+    height: calc(100vh - 120px);
+    overflow-y: hidden;
+
+    li {
+        margin-top: 2px;
+        margin-bottom: 2px;
+        width: 96%;
+        margin-left: 2%;
+        margin-right: 2%;
+
+        a {
+            color: var(--text-color);
+            text-decoration: none;
+            font-size: 15px;
+            font-weight: 500;
+            display: flex;
+            padding: 10px 10px;
+            width: 100%;
+            align-items: center;
+            justify-content: flex-start;
+            transition: background-color 0.2s ease, color 0.2s ease, transform 0.2s ease;
+            border-radius: 12px;
+        }
+    }
+
+    &:hover {
+        overflow-y: auto;
+        margin-right: 0px;
+    }
+}
+
+.admintab::-webkit-scrollbar-thumb {
+    background-color: var.$hover_color;
+    border-radius: 4px;
+
+    &:hover {
+        background-color: var.$text_hover_color;
+    }
+}
+
+.navbar.collapsed .admintab::-webkit-scrollbar {
+    display: none;
+}
+
+.admintab .category-heading {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--muted-text);
+    padding: 10px 0px 5px 10px;
+    margin-top: 2px;
+}
+
+.navbar.collapsed .category-heading {
+    display: none;
+}
+
+.navbar.collapsed .admintab a {
+    justify-content: center;
+    font-size: 0;
+    width: 100%;
+}
+
+.admintab a.active {
+    color: var.$text_hover_color;
+    background: color-mix(in srgb, var(--primary-color) 14%, transparent);
+    border: 1px solid color-mix(in srgb, var(--primary-color) 22%, transparent);
+    text-decoration: none;
+}
+
+.admintab li a:hover {
+    background: color-mix(in srgb, var(--secondary-color) 40%, transparent);
+    text-decoration: none;
+    color: var.$text_hover_color;
+    transform: translateY(-1px);
+}
+
+.body-move-left-80 {
+    margin-left: 80px;
+    transition: margin-left 0.3s ease;
+}
+
+.body-move-left-150 {
+    margin-left: 250px;
+    transition: margin-left 0.3s ease;
+}
