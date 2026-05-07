@@ -1,0 +1,14 @@
+npm create vite@latest
+npm install
+npm i react-router-dom
+npm install @mui/icons-material @mui/material @emotion/react @emotion/styled
+npm i bootstrap
+npm install react-bootstrap
+npm install react-responsive-carousel
+npm install @fortawesome/react-fontawesome @fortawesome/free-solid-svg-icons @fortawesome/fontawesome-svg-core
+npm install --save-dev node-sass
+npm install -D sass-embedded
+npm install react-world-flags
+npm i dotenv
+npm install react-phone-number-input
+npm install -D tailwindcss @tailwindcss/vite
