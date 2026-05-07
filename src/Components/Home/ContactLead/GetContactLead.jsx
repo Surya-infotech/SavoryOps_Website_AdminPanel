@@ -13,15 +13,6 @@ import Pagination from '../../../Pages/Custom/Pagination';
 import WarningModal from '../../../Pages/Custom/WarningModal';
 import '../../../Scss/Home/ContactLead/getcontactlead.scss';
 
-const MESSAGE_TRUNCATE_LENGTH = 50;
-
-const truncateMessage = (text) => {
-    if (!text) return '-';
-    const str = String(text);
-    if (str.length <= MESSAGE_TRUNCATE_LENGTH) return str;
-    return `${str.slice(0, MESSAGE_TRUNCATE_LENGTH)}...`;
-};
-
 const formatDate = (value) => {
     if (!value) return '-';
     const date = new Date(value);
@@ -69,16 +60,7 @@ const GetContactLead = ({ searchValue }) => {
                 const data = await response.json();
 
                 if (response.ok) {
-                    const list = Array.isArray(data)
-                        ? data
-                        : Array.isArray(data?.contactLeads)
-                            ? data.contactLeads
-                            : Array.isArray(data?.data)
-                                ? data.data
-                                : data
-                                    ? [data]
-                                    : [];
-                    setContactList(list);
+                    setContactList(Array.isArray(data?.leads) ? data.leads : []);
                 } else {
                     setWarningMessage(
                         data?.message || 'Server error. Please try again.',
@@ -121,16 +103,14 @@ const GetContactLead = ({ searchValue }) => {
         setContactList(sorted);
     };
 
-    const filteredContacts = contactList.filter((item) => {
-        const lowerSearch = (searchValue || '').toLowerCase();
-        if (!lowerSearch) return true;
-        return Object.values(item).some((value) =>
-            value?.toString().toLowerCase().includes(lowerSearch),
-        );
-    });
+    const filteredContacts = contactList.filter((item) =>
+        Object.values(item).some((value) =>
+            value?.toString().toLowerCase().startsWith(searchValue.toLowerCase()),
+        ),
+    );
 
     const totalRecords = filteredContacts.length;
-    const totalPages = Math.ceil(totalRecords / pageSize) || 1;
+    const totalPages = Math.ceil(totalRecords / pageSize);
     const visibleContacts = filteredContacts.slice(
         (currentPage - 1) * pageSize,
         currentPage * pageSize,
@@ -157,11 +137,11 @@ const GetContactLead = ({ searchValue }) => {
                                 <th onClick={() => sortContactList('email')}>
                                     Email {renderSortIcon('email')}
                                 </th>
-                                <th onClick={() => sortContactList('phone')}>
-                                    Phone {renderSortIcon('phone')}
+                                <th onClick={() => sortContactList('country')}>
+                                    Country {renderSortIcon('country')}
                                 </th>
-                                <th onClick={() => sortContactList('message')}>
-                                    Message {renderSortIcon('message')}
+                                <th onClick={() => sortContactList('status')}>
+                                    Status {renderSortIcon('status')}
                                 </th>
                                 <th onClick={() => sortContactList('createdAt')}>
                                     Submitted On {renderSortIcon('createdAt')}
@@ -172,15 +152,22 @@ const GetContactLead = ({ searchValue }) => {
                         <tbody>
                             {visibleContacts.length > 0 ? (
                                 visibleContacts.map((contact) => (
-                                    <tr key={contact._id || contact.id || contact.email}>
-                                        <td>{contact.fullname || contact.name || '-'}</td>
-                                        <td>{contact.email || '-'}</td>
-                                        <td>{contact.phone || '-'}</td>
-                                        <td
-                                            className="contactlead-message-cell"
-                                            title={contact.message || ''}
-                                        >
-                                            {truncateMessage(contact.message)}
+                                    <tr key={contact._id}>
+                                        <td>{contact.fullname}</td>
+                                        <td>{contact.email}</td>
+                                        <td>{contact.country}</td>
+                                        <td>
+                                            {contact.status ? (
+                                                <span
+                                                    className={`status-badge status-${String(
+                                                        contact.status,
+                                                    ).toLowerCase()}`}
+                                                >
+                                                    {contact.status}
+                                                </span>
+                                            ) : (
+                                                '-'
+                                            )}
                                         </td>
                                         <td>{formatDate(contact.createdAt)}</td>
                                         <td>
@@ -196,28 +183,23 @@ const GetContactLead = ({ searchValue }) => {
                                     </tr>
                                 ))
                             ) : (
-                                <tr>
-                                    <td colSpan="6">No data found</td>
+                                <tr className="empty-row">
+                                    <td colSpan="6">No contact leads found</td>
                                 </tr>
                             )}
                         </tbody>
                     </table>
                 </div>
             )}
-            {!loading && (
-                <Pagination
-                    currentPage={currentPage}
-                    totalPages={totalPages}
-                    onPageChange={(page) => setCurrentPage(page)}
-                    pageSizeOptions={[10, 15, 20, 50]}
-                    selectedPageSize={pageSize}
-                    onPageSizeChange={(size) => {
-                        setPageSize(size);
-                        setCurrentPage(1);
-                    }}
-                    totalRecords={totalRecords}
-                />
-            )}
+            <Pagination
+                currentPage={currentPage}
+                totalPages={totalPages}
+                onPageChange={(page) => setCurrentPage(page)}
+                pageSizeOptions={[10, 15, 20, 50]}
+                selectedPageSize={pageSize}
+                onPageSizeChange={(size) => setPageSize(size)}
+                totalRecords={totalRecords}
+            />
 
             {viewModalContact && (
                 <div
@@ -244,33 +226,73 @@ const GetContactLead = ({ searchValue }) => {
                                     />
                                 </div>
                                 <div className="modal-body contactlead-view-modal-body">
-                                    <div className="contactlead-view-row">
-                                        <span className="contactlead-view-label">Full Name:</span>
-                                        <span className="contactlead-view-value">
-                                            {viewModalContact.fullname ||
-                                                viewModalContact.name ||
-                                                '-'}
-                                        </span>
+                                    <div className="contactlead-view-grid contactlead-view-grid-3">
+                                        <div className="contactlead-view-row">
+                                            <span className="contactlead-view-label">
+                                                Full Name:
+                                            </span>
+                                            <span className="contactlead-view-value">
+                                                {viewModalContact.fullname || '-'}
+                                            </span>
+                                        </div>
+                                        <div className="contactlead-view-row">
+                                            <span className="contactlead-view-label">
+                                                Country:
+                                            </span>
+                                            <span className="contactlead-view-value">
+                                                {viewModalContact.country || '-'}
+                                            </span>
+                                        </div>
+                                        <div className="contactlead-view-row">
+                                            <span className="contactlead-view-label">Status:</span>
+                                            <span className="contactlead-view-value">
+                                                {viewModalContact.status ? (
+                                                    <span
+                                                        className={`status-badge status-${String(
+                                                            viewModalContact.status,
+                                                        ).toLowerCase()}`}
+                                                    >
+                                                        {viewModalContact.status}
+                                                    </span>
+                                                ) : (
+                                                    '-'
+                                                )}
+                                            </span>
+                                        </div>
                                     </div>
-                                    <div className="contactlead-view-row">
-                                        <span className="contactlead-view-label">Email:</span>
-                                        <span className="contactlead-view-value">
-                                            {viewModalContact.email || '-'}
-                                        </span>
+                                    <div className="contactlead-view-grid">
+                                        <div className="contactlead-view-row">
+                                            <span className="contactlead-view-label">Email:</span>
+                                            <span className="contactlead-view-value">
+                                                {viewModalContact.email || '-'}
+                                            </span>
+                                        </div>
+                                        <div className="contactlead-view-row">
+                                            <span className="contactlead-view-label">
+                                                Timezone:
+                                            </span>
+                                            <span className="contactlead-view-value">
+                                                {viewModalContact.timezone || '-'}
+                                            </span>
+                                        </div>
                                     </div>
-                                    <div className="contactlead-view-row">
-                                        <span className="contactlead-view-label">Phone:</span>
-                                        <span className="contactlead-view-value">
-                                            {viewModalContact.phone || '-'}
-                                        </span>
-                                    </div>
-                                    <div className="contactlead-view-row">
-                                        <span className="contactlead-view-label">
-                                            Submitted On:
-                                        </span>
-                                        <span className="contactlead-view-value">
-                                            {formatDate(viewModalContact.createdAt)}
-                                        </span>
+                                    <div className="contactlead-view-grid">
+                                        <div className="contactlead-view-row">
+                                            <span className="contactlead-view-label">
+                                                Submitted On:
+                                            </span>
+                                            <span className="contactlead-view-value">
+                                                {formatDate(viewModalContact.createdAt)}
+                                            </span>
+                                        </div>
+                                        <div className="contactlead-view-row">
+                                            <span className="contactlead-view-label">
+                                                Last Updated:
+                                            </span>
+                                            <span className="contactlead-view-value">
+                                                {formatDate(viewModalContact.updatedAt)}
+                                            </span>
+                                        </div>
                                     </div>
                                     <div className="contactlead-view-row contactlead-view-row-message">
                                         <span className="contactlead-view-label">Message:</span>

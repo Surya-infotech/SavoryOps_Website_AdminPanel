@@ -59,7 +59,7 @@ const AdminLogin = () => {
 
       const data = await response.json();
       if (response.ok) {
-        storetoken(data.admin.Token);
+        storetoken(data.token);
         navigate("/Home/Dashboard");
       } else {
         setFormError(data.message || "Server error. Please try again.");
